@@ -1,0 +1,12 @@
+# Paraconsistent Annotated Evidential Logic Eτ (PAL2v)
+#
+# Hash-pinned. pip refuses the install if either artefact differs from the
+# copies vendored under vendor/paraconsistent/ and published on PyPI.
+#
+#   pip install -r requirements.txt                          # from PyPI
+#   pip install --no-index --find-links vendor/paraconsistent \
+#       -r requirements.txt                                  # from vendor/, offline
+#
+paraconsistent==0.2.4 \
+    --hash=sha256:b5b69a1893d5ba5eff0df5a10e7851cdc5e4788cbb85e41d2ed2c215a67c6b9f \
+    --hash=sha256:2aa537d4048dec80fc7503c0bc167dc0088da241c1a0ff754b79bbb697c5e440
