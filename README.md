@@ -21,6 +21,9 @@ without trivialising the system.
 | `src/etau_decision.py` | Cost-derived partitions: regions induced by what you'd *do*, not by `FtC` |
 | `examples/cost_derived_partition.py` | The above, worked through against an `FtC` baseline |
 | `tests/test_decision.py` | Tests for the decision layer |
+| `src/etau_ensemble.py` | Runs the pipeline under several defensible belief maps and answers plurally where they disagree |
+| `tests/test_ensemble.py` | Tests, including the monotonicity that makes the spread a lower bound |
+| `tests/test_critique_findings.py` | Pins Grok Build's findings (`luckylove#1`) |
 
 ## Cost-derived partitions
 
@@ -32,22 +35,34 @@ action minimises expected loss, and the boundaries land where cost curves cross.
 
 Three consequences, all demonstrated in the example:
 
-- **The region count becomes an output.** Supply four actions, get however many
-  regions are actually optimal somewhere. An action that never wins simply
-  doesn't appear — and that absence is a finding about your action set.
-  Cheapening one action's payoff drops the induced count from 4 to 3.
+- **The region count follows the action vocabulary rather than a threshold.**
+  Supply four actions, get however many are optimal somewhere; cheapening one
+  action's payoff drops the induced count from 4 to 3. An earlier draft of this
+  file said "nobody chose 4." That was false — I chose the vocabulary, and Grok
+  Build measured it (`critique/CRITIQUE.md` A5: 1/2/3/4/5 actions → 1/2/3/4/4
+  regions). The free parameter changed type, from `float FtC` to
+  `(Action, loss matrix)[]`. It did not vanish.
 - **Ties are returned, not broken.** `Policy.optimal` yields a `frozenset` of
   argmin actions, so a point on a crossing hands you both names. This is the
   discipline `paraconsistent` 0.2.4 gives up by returning `str` and settling
   `dc >= 0` silently.
-- **The parameter acquires a truth condition.** `calibration_report` and
-  `brier_score` can catch the model being wrong. There's no equivalent table
-  for `FtC`, because a threshold makes no claim about the world.
+- **The parameter acquires a truth condition.** `calibration_report`,
+  `brier_score` and `unreachable_under` can catch the model being wrong. There's
+  no equivalent table for `FtC`, because a threshold makes no claim about the
+  world. This is weaker than "reality will refute you": `argmin` needs only the
+  order of expected losses, so reality refutes you where the ordering breaks and
+  is silent elsewhere.
 
 The belief model routes through `Dct`'s sign, which `μER` cannot do: `μER` maps
 `p(1,1)`, `p(0,0)` and `p(0.5,0.5)` all to `0.5`, collapsing "channels
 contradict", "channels dead" and "channels agree on a coin-flip" into one
 number. They warrant different actions.
+
+It is a **feature map, not a posterior** — I chose the split
+`(φ·μE, φ·(1−μE), max(Dct,0), max(−Dct,0))`, and calling it "derived from the
+logic" in the first draft was the same costume this module criticises in `FtC`.
+A 20×20 histogram that does not know Eτ exists beats it on held-out Brier by
+orders of magnitude (`HistogramBelief`). Use it as features, or fit from data.
 
 Two results worth flagging, since both cut against the module:
 
@@ -174,3 +189,35 @@ but blocks `arxiv.org`, `github.com`, and the publisher sites, so the papers
 themselves could not be fetched. `docs/paraconsistent-annotated-evidential-logic-etau.md`
 carries a full bibliography with DOIs and URLs for retrieval from an unrestricted
 network.
+
+## How much the lines matter
+
+`src/etau_ensemble.py` runs the decision pipeline under three equally defensible
+belief maps at once — the ones Grok Build named in `critique/CRITIQUE.md` A2 —
+and returns the *union* of their argmin sets. Where they agree you get a
+singleton. Where the choice of map changes what you'd do, the answer is plural
+and cannot be read as a single verdict.
+
+Measured, with the shipped four-action vocabulary:
+
+| members | grid | deployment |
+|---|---|---|
+| 1 (`etau_belief` only) | 0.012 | 0.000 |
+| 2 (+ radial) | 0.538 | 0.537 |
+| 3 (+ hard argmax) | **0.551** | **0.538** |
+
+**Over half the annotation square, and over half of actual traffic, the choice
+of mass map changes the action.** That number is what an annotation reading
+"this was a choice" is silent about.
+
+Two things to hold onto, or this becomes the next thing that needs backing out:
+
+1. **These are lower bounds.** Disagreement is `|union| > 1` and unions only
+   grow, so adding a member can never reduce the measured spread
+   (`test_sensitivity_is_monotone_in_members`). A narrow spread means "the
+   members I picked agree", never "the choice doesn't matter" — which is why
+   `n_members` is reported beside every figure and `Ensemble.add()` is a
+   one-liner.
+2. **The ensemble is itself a drawn line.** Three maps, proposed by one outside
+   reader. Not a basis, not canonical. The repair for a suspiciously narrow
+   spread is to add a member, and that repair is available to anyone.
