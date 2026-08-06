@@ -1,0 +1,205 @@
+{
+  "findings": [
+    {
+      "tag": "A1_dcr_geometry",
+      "verdict": "BREAKS",
+      "claim": "Dcr=0 region is unit-square minus two quarter-disks of radius \u221a\u00bd centred on t and f; area exactly 1 \u2212 \u03c0/4",
+      "detail": {
+        "measured_Dcr0_area": 0.21467851781255798,
+        "predicted_1_minus_pi_over_4": 0.21460183660255172,
+        "abs_error": 7.66812100062575e-05,
+        "entire_mu_eq_lam_diagonal_is_Dcr0": true,
+        "euclid_outside_both_disks_area": 0.21510438367920598,
+        "fraction_of_Dcr0_that_is_outside_euclid_disks": 0.9998843696701645,
+        "note": "Waist claim 'pinched to zero at I' is false: \u03bc=\u03bb diagonal is entirely Dcr=0. Area 1-\u03c0/4 is the Euclidean-disk complement; library D uses rotated (Dc,Dct) metric."
+      }
+    },
+    {
+      "tag": "A2_phi_is_a_costume",
+      "verdict": "BREAKS",
+      "claim": "\u03c6 = 1\u2212|Dct| is the mass that is *decided*, split by \u03bcE \u2014 a derived quantity, not a modeling choice",
+      "detail": {
+        "all_alts_sum_to_1": true,
+        "frac_disagree_phi_vs_radial": 0.5447904652056901,
+        "frac_disagree_phi_vs_hard": 0.20838139177239523,
+        "region_count_phi": 4,
+        "region_count_radial": 4,
+        "region_count_hard": 4,
+        "note": "Multiple equally arithmetic-clean mass assignments induce different partitions."
+      }
+    },
+    {
+      "tag": "A3_simulator_collusion",
+      "verdict": "BREAKS",
+      "claim": "Cost-derived beats FtC because the model is better, not because the simulator was built to match the ontology",
+      "detail": {
+        "friend_ftc": 1.1188,
+        "friend_cost4": -0.521,
+        "friend_cost4_beats_ftc": true,
+        "binary_ftc": 1.4826,
+        "binary_cost2": -0.33453333333333335,
+        "binary_cost4": -0.2634666666666667,
+        "binary_cost4_beats_ftc": true,
+        "binary_cost4_minus_cost2_waste": 0.07106666666666667,
+        "uncorrelated_ftc": 0.5693333333333334,
+        "uncorrelated_cost4": 0.23413333333333333,
+        "uncorrelated_cost4_beats_ftc": true,
+        "inverted_ftc": 1.7628,
+        "inverted_cost4": -0.19486666666666666,
+        "inverted_cost4_beats_ftc": true,
+        "note": "Shipped simulator samples (\u03bc,\u03bb) FROM the world labels etau_belief assumes. Hostile generators break that handshake."
+      }
+    },
+    {
+      "tag": "A4_ordering_blindspot",
+      "verdict": "HOLDS",
+      "claim": "Falsifiability of the cost model is real: reality will refute a wrong model via empirical_loss / calibration",
+      "detail": {
+        "power_best": {
+          "gamma": 0.5,
+          "frac_partition_disagree": 0.13622843545508626,
+          "brier_base": 0.14573820217839095,
+          "brier_distorted": 0.30539612121256143,
+          "loss_base": -0.5199375,
+          "loss_distorted": -0.294125,
+          "abs_loss_delta": 0.22581250000000003
+        },
+        "flat_mix_frac_partition_disagree": 0.11380238369857747,
+        "flat_brier_base": 0.1437112768021275,
+        "flat_brier_distorted": 0.22710602995812856,
+        "flat_loss_base": -0.5294,
+        "flat_loss_distorted": -0.3599,
+        "note": "Module admits calibration\u2260decision. Quantified: large belief distortion can leave nearly identical decisions. empirical_loss refutes only when ORDERING breaks, not when magnitudes are wrong."
+      }
+    },
+    {
+      "tag": "A5_action_set_is_the_new_FtC",
+      "verdict": "BREAKS",
+      "claim": "Region count is an OUTPUT not a parameter \u2014 nobody chose 4",
+      "detail": {
+        "region_counts_by_action_vocab": {
+          "1_halt": 1,
+          "2_proceed_halt": 2,
+          "3_no_approach": 3,
+          "4_all": 4,
+          "5_with_wait": 4,
+          "4_but_2_dead": 2
+        },
+        "note": "'Nobody chose 4' is rhetoric. Someone chose four actions and their loss vectors. Count is output OF that choice, exactly as two-region is output of choosing a threshold rule. The gain is that the parameter is now multi-dimensional and checkable \u2014 not that parameterisation disappeared."
+      }
+    },
+    {
+      "tag": "A6_grid_artifacts",
+      "verdict": "HOLDS",
+      "claim": "unreachable() and region_count() are empirical facts about the action set",
+      "detail": {
+        "unreachable_steps_3": [],
+        "unreachable_steps_11": [],
+        "unreachable_steps_101": [],
+        "region_count_3": 1,
+        "region_count_101": 1,
+        "grid_dependent": false,
+        "note": "unreachable/region_count are grid estimators, not exact. Coarse grids lie."
+      }
+    },
+    {
+      "tag": "A7_tie_average",
+      "verdict": "SOFT",
+      "claim": "Ties cost the average of what they tie between: no free lunch from refusing to choose",
+      "detail": {
+        "loss_if_safe": 1.0,
+        "loss_if_risky": 100.0,
+        "loss_if_tie_averaged": 50.5,
+        "note": "Average is a scoring convention for set-valued decide, not a physical outcome. Deployment always picks one. Maximin / CVaR would break ties differently. 'No free lunch' holds for risk-neutral expectation of a fair coin between pure actions \u2014 a narrower claim."
+      }
+    },
+    {
+      "tag": "A8_linearity_flattens_geometry",
+      "verdict": "SOFT",
+      "claim": "Cost-curve boundaries capture the interesting non-linear structure of the annotation square",
+      "detail": {
+        "n_boundary_edges": 40,
+        "mean_abs_delta_Dc_across_boundary": 0.012499999999999992,
+        "mean_abs_delta_Dct_across_boundary": 0.012499999999999992,
+        "mean_abs_delta_Dcr_across_boundary": 0.015062719582584972,
+        "note": "Cost boundaries cut Dcr level sets (mean |\u0394Dcr| > 0). The radial/circular structure of real certainty is not what places the cost-derived walls. Piecewise-linear belief + linear loss => piecewise-linear regions. The notebook's circle is flattened."
+      }
+    },
+    {
+      "tag": "A9_better_belief_exists",
+      "verdict": "BREAKS",
+      "claim": "The default etau_belief is the natural belief model from the lattice quantities",
+      "detail": {
+        "brier_etau": 0.14596657987607292,
+        "brier_histogram_oracle": 7.5e-05,
+        "loss_etau": -0.5241,
+        "loss_histogram": -0.7413,
+        "loss_ftc": 1.1154,
+        "hist_better_calibrated": true,
+        "hist_better_decisions": true,
+        "note": "A dumb histogram of the DGP crushes etau_belief on Brier. The lattice readout is not information-theoretically privileged; it's a fixed linear feature map. 'Natural from the logic' \u2260 'good probabilistic model'."
+      }
+    },
+    {
+      "tag": "A10_reading_A_vs_B",
+      "verdict": "SOFT",
+      "claim": "FAULT_CONFLICT / FAULT_SILENCE are instrument failures; the world is 2-valued",
+      "detail": {
+        "loss_instrument_actions_on_ontic_data": -0.9893125,
+        "loss_ontic_actions_on_ontic_data": -0.40885000000002386,
+        "note": "API names FAULT_* and the worked example assume Reading A (instrument failure). Nothing in Policy enforces it. If the world is Belnap-4-valued, recalibrate/approach are category errors and the worked example's moral doesn't transfer. The module is reading-agnostic in code, reading-A in prose."
+      }
+    },
+    {
+      "tag": "A11_silent_sign_in_belief",
+      "verdict": "HOLDS",
+      "claim": "etau_belief avoids the silent tie-breaks of labels.py (dc>=0, dct>=0)",
+      "detail": {
+        "etau_belief_silent_free_on_axes": true,
+        "library_dcr_uses_dc_geq_0": true,
+        "belief_at_0.6_0.6": {
+          "obstacle": 0.4,
+          "clear": 0.4,
+          "fault_conflict": 0.19999999999999996,
+          "fault_silence": 0.0
+        },
+        "note": "etau_belief itself is clean on the axes. Any belief that routes through dcr/muER re-imports labels.py's silent dc>=0. The type discipline on Policy.optimal does not protect the belief function."
+      }
+    },
+    {
+      "tag": "A12_positive_controls",
+      "verdict": "HOLDS",
+      "claim": "Core engineering claims: ties returned, dominated actions drop, partition affine-invariant, belief is a distribution",
+      "detail": {
+        "belief_sums_to_1": true,
+        "ties_returned": true,
+        "dominated_unreachable": true,
+        "affine_invariance": true,
+        "separates_muER_collisions": true
+      }
+    },
+    {
+      "tag": "A13_forced_three",
+      "verdict": "HOLDS",
+      "claim": "Three Dcr regions are forced by definition; twelve needs FtC; cost-derived is optional refinement",
+      "detail": {
+        "dcr_sign_areas": {
+          "['Dcr=0']": 0.21546496373852134,
+          "['Dcr<0']": 0.39226751813073935,
+          "['Dcr>0']": 0.39226751813073935
+        },
+        "twelve_labels_used_inside_Dcr0": {
+          "\u2534": 3495,
+          "Q\u2534\u2192f": 404,
+          "Q\u2534\u2192t": 453,
+          "I": 1,
+          "Q\u252c\u2192t": 453,
+          "Q\u252c\u2192f": 404,
+          "\u252c": 3495
+        },
+        "n_twelve_labels_covering_neutral": 7,
+        "note": "Forced-three is real and FtC-free. The twelve-region readout scatters Dcr=0 across multiple labels (measured). Cost-derived is a further optional layer; it does not replace the forced three, and the forced three do not need costs."
+      }
+    }
+  ]
+}
