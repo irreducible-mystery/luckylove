@@ -18,6 +18,47 @@ without trivialising the system.
 | `scripts/install-offline.sh` | Installs from `vendor/` with no network access |
 | `examples/etau_demo.py` | Runnable demo of the para-analyser and block chaining |
 | `tests/test_etau.py` | Verification of the downloaded artefact against the literature |
+| `src/etau_decision.py` | Cost-derived partitions: regions induced by what you'd *do*, not by `FtC` |
+| `examples/cost_derived_partition.py` | The above, worked through against an `FtC` baseline |
+| `tests/test_decision.py` | Tests for the decision layer |
+
+## Cost-derived partitions
+
+`src/etau_decision.py` is an argument in code. The twelve regions partition
+annotations by the geometry of the lattice, with `FtC` drawing the lines —
+a stipulation you can replace but never discover to be wrong. The alternative:
+partition by *what you would do*, so two annotations share a region iff the same
+action minimises expected loss, and the boundaries land where cost curves cross.
+
+Three consequences, all demonstrated in the example:
+
+- **The region count becomes an output.** Supply four actions, get however many
+  regions are actually optimal somewhere. An action that never wins simply
+  doesn't appear — and that absence is a finding about your action set.
+  Cheapening one action's payoff drops the induced count from 4 to 3.
+- **Ties are returned, not broken.** `Policy.optimal` yields a `frozenset` of
+  argmin actions, so a point on a crossing hands you both names. This is the
+  discipline `paraconsistent` 0.2.4 gives up by returning `str` and settling
+  `dc >= 0` silently.
+- **The parameter acquires a truth condition.** `calibration_report` and
+  `brier_score` can catch the model being wrong. There's no equivalent table
+  for `FtC`, because a threshold makes no claim about the world.
+
+The belief model routes through `Dct`'s sign, which `μER` cannot do: `μER` maps
+`p(1,1)`, `p(0,0)` and `p(0.5,0.5)` all to `0.5`, collapsing "channels
+contradict", "channels dead" and "channels agree on a coin-flip" into one
+number. They warrant different actions.
+
+Two results worth flagging, since both cut against the module:
+
+1. **The shipped default belief model fails its own calibration check.** On the
+   example's simulator it is systematically underconfident — predicts 0.55 where
+   the world delivers 0.94 — because it splits the decided mass `φ` by `μE`, a
+   linear readout of `Dc` that cannot sharpen faster than evidence separates.
+   That's the hook working, not the hook failing.
+2. **It still beats the `FtC` baseline anyway.** `argmin` needs only the *order*
+   of expected losses, so a monotone distortion can leave every boundary intact.
+   Calibration and decision quality are different properties — measure both.
 
 ## Quick start
 
