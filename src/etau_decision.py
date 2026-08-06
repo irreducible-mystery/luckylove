@@ -20,9 +20,9 @@ strict upgrade for one reason only: the new type is multi-dimensional and
 the checks. FtC has no equivalent, because a threshold makes no claim about the
 world that data could contradict.
 
-Every arbitrary line in here is registered in `choices.py` and printable with
-`format_registry()`. That is the mechanism, replacing a discipline that has
-already failed three times in this repository's own history.
+The arbitrary lines in here are written down in plain comments below. They are
+not enforced, deliberately — see the note above `TIE_TOL` for why the mechanism
+that used to enforce them was removed.
 
 Ties are returned, never broken. `Policy.optimal` yields a frozenset of the
 argmin actions, so a point sitting exactly on a cost-curve crossing hands you
@@ -40,13 +40,10 @@ from typing import Callable, Iterable, Mapping, Sequence
 
 from paraconsistent import ParaconsistentBlock
 
-from choices import declare, format_registry
-
 __all__ = [
     "Action", "Policy", "etau_belief", "ftc_policy", "HistogramBelief",
     "empirical_loss", "calibration_report", "brier_score", "unreachable_under",
     "OBSTACLE", "CLEAR", "FAULT_CONFLICT", "FAULT_SILENCE", "WORLDS",
-    "format_registry",
 ]
 
 # World states. All four are observable after the fact — the two fault states
@@ -61,90 +58,54 @@ WORLDS = (OBSTACLE, CLEAR, FAULT_CONFLICT, FAULT_SILENCE)
 # --------------------------------------------------------------- evidence
 
 
-# --- Arbitrary lines in this module, drawn on purpose and on the record. -------
+# --- Arbitrary lines in this module. -----------------------------------------
+#
+# Written down, not enforced. An earlier version of this block registered each
+# of these with a `Choice` object and an AST scan that failed the build on any
+# undeclared numeric literal. That mechanism was removed, because checking what
+# it would actually have caught answers the question: of the five BREAKS in
+# `critique/CRITIQUE.md`, ZERO are numeric literals. The hourglass topology is
+# prose; phi-as-decided-mass is a formula; deployment-vs-annotation is a measure;
+# the action vocabulary is a list; belief-as-posterior is a role confusion. The
+# scan fired only on housekeeping — a tolerance, three grid sizes, a bin count —
+# while creating the appearance that the arbitrary lines were accounted for.
+#
+# Documented amnesia is worse than undocumented amnesia: it looks like diligence,
+# so it does not get questioned. These comments make no coverage claim.
 
-TIE_TOL = declare(
-    "tie_tolerance",
-    1e-12,
-    alternatives=["0.0 — exact float equality only, so ties essentially never fire",
-                  "1e-9 / 1e-6 — wider bands, more boundaries reported as ties",
-                  "relative tolerance scaled to the loss magnitudes"],
-    consequence="sets how wide a cost-curve crossing has to be before `optimal` "
-                "returns both actions. Too tight and the set-valued type silently "
-                "degenerates back to single-valued — the exact bug it exists to fix.",
-    collapses="the difference between a genuine tie and two actions that merely "
-              "differ by less than float noise; below this width the module has "
-              "no opinion and says so, which is itself a drawn line",
-    chosen_by="claude-opus-5; flagged by Grok Build's A7 as a scoring convention "
-              "rather than a physical fact",
-    evidence="critique/CRITIQUE.md A7; tests/test_decision.py::test_ties_cost_their_average",
-)
+TIE_TOL = 1e-12
+# Alternatives: 0.0 (exact equality, ties never fire); 1e-9/1e-6 (wider bands);
+# relative tolerance scaled to loss magnitudes.
+# Hides: the difference between a genuine tie and two actions differing by less
+# than float noise. Too tight and the set-valued type silently degenerates back
+# to single-valued — the exact bug it exists to fix. Grok Build's A7.
 
-GRID_STEPS = declare(
-    "partition_grid_steps",
-    201,
-    alternatives=["101 (4x cheaper, misses thin regions)",
-                  "1001 (finds slivers, ~25x cost)",
-                  "adaptive refinement near detected walls",
-                  "exact polytope enumeration — the walls are piecewise-linear, "
-                  "so this is computable and would end the sampling question"],
-    consequence="a region thinner than one cell is invisible, so `region_count` "
-                "and `unreachable` are lower and upper bounds respectively, not "
-                "facts. Grok Build's A5 saw a 5th action fail to carve interior "
-                "'at this grid' — a resolution artefact, not a finding.",
-    collapses="every region narrower than 1/200 of the square, and the entire "
-              "question of whether a reported region is genuinely 2-dimensional",
-    chosen_by="claude-opus-5, for demo latency",
-    evidence="critique/CRITIQUE.md §4 'with grid-resolution caveats documented'",
-)
+GRID_STEPS = 201
+# Alternatives: 101 (cheaper, misses thin regions); 1001; adaptive refinement;
+# exact polytope enumeration — the walls are piecewise-linear, so this is
+# computable and would end the sampling question entirely.
+# Hides: every region narrower than 1/200 of the square. `region_count` is a
+# lower bound and `unreachable` an upper bound, not facts. Grok's A5 saw a fifth
+# action fail to carve interior "at this grid" — a resolution artefact.
 
-RENDER_STEPS = declare(
-    "render_grid_steps",
-    41,
-    alternatives=["21 (fits narrower terminals)", "81 (needs a wide terminal)"],
-    consequence="ASCII map resolution only; no effect on any computed result",
-    collapses="everything thinner than one character cell — the map is a picture "
-              "of the partition, not evidence about it",
-    chosen_by="claude-opus-5, to fit an 80-column terminal",
-    evidence="examples/cost_derived_partition.py section 3",
-)
+RENDER_STEPS = 41
+# ASCII map only; no computed result depends on it. Hides everything thinner
+# than a character cell. The map is a picture of the partition, not evidence.
 
-CALIBRATION_BINS = declare(
-    "calibration_bins",
-    5,
-    alternatives=["10 (finer, needs more data per bucket)",
-                  "quantile bins (equal population, unequal width)",
-                  "no bucketing — a reliability curve or a proper scoring rule alone"],
-    consequence="coarser bins hide miscalibration inside a bucket; finer bins "
-                "make every bucket noisy. The 0.55->0.94 drift this module reports "
-                "against itself is measured at this bin count.",
-    collapses="all miscalibration structure finer than 0.2 of predicted "
-              "probability, and any dependence of calibration on WHERE in the "
-              "annotation square the prediction came from",
-    chosen_by="claude-opus-5",
-    evidence="examples/cost_derived_partition.py section 6",
-)
+CALIBRATION_BINS = 5
+# Alternatives: 10; quantile bins; no bucketing at all (reliability curve or a
+# proper scoring rule alone).
+# Hides: miscalibration structure finer than 0.2 of predicted probability, and
+# any dependence of calibration on WHERE in the square the prediction came from.
+# The 0.55 -> 0.94 drift this module reports against itself is measured here.
 
-
-declare(
-    "phi_as_decided_mass",
-    "(phi*muE, phi*(1-muE), max(Dct,0), max(-Dct,0))",
-    alternatives=[
-        "radial: split by the normalised distance D instead of phi",
-        "hard argmax on Dc with a contradiction reserve",
-        "any calibrated model fit from data (see HistogramBelief)",
-    ],
-    consequence="Grok Build's A2 probe: the radial alternative disagrees with "
-                "this one on 54% of the annotation square and the hard-argmax "
-                "alternative on 21%, under the same four actions. Region count "
-                "stays 4 in all three — the count is stable, the WALLS move.",
-    collapses="weight of evidence. 1-vs-1, 10-vs-10 and 5000-vs-5000 all land on "
-              "p(0.5,0.5) and get identical mass. Verified against julia3claude's "
-              "CRITIQUE_REPORT.md §F, which found the same collapse in muER.",
-    chosen_by="claude-opus-5; called 'derived' in the first draft, which was the "
-              "same costume this module criticises in FtC",
-    evidence="critique/CRITIQUE.md A2; critique/attack_results.json",
-)
+# The belief feature map itself — (phi*muE, phi*(1-muE), max(Dct,0), max(-Dct,0))
+# — is the largest drawn line in this file, and it is not a number, which is why
+# no scanner was ever going to see it. Alternatives: split by the radial distance
+# D instead of phi (disagrees on 54% of the square, Grok's A2); hard argmax on
+# Dc (21%); any model fit from data (see HistogramBelief). Hides: weight of
+# evidence — 1-vs-1, 10-vs-10 and 5000-vs-5000 all land on p(0.5,0.5) and get
+# identical mass. Same collapse julia3claude's CRITIQUE_REPORT.md found in muER.
 
 
 def etau_belief(mu: float, lam: float) -> dict[str, float]:
@@ -399,20 +360,7 @@ class HistogramBelief:
     confused with "good", and so the comparison is one import away.
     """
 
-    bins: int = declare(
-        "histogram_bins",
-        20,
-        alternatives=["10 (coarser, less variance, more bias)",
-                      "50 (finer, needs far more data)",
-                      "adaptive/quantile bins", "isotonic or Platt on (Dc, Dct)"],
-        consequence="bin count trades bias against variance; at 20 bins the "
-                    "shipped 20k-record simulator gives ~50 records/cell",
-        collapses="everything inside a cell — two annotations in the same bin are "
-                  "indistinguishable, so this model has a resolution floor exactly "
-                  "the way the 12-region readout does, just at a different scale",
-        chosen_by="Grok Build's A9 probe; adopted here at its value",
-        evidence="critique/CRITIQUE.md A9",
-    )
+    bins: int = 20
     prior_strength: float = 1.0
     _table: dict[tuple[int, int], dict[str, float]] = field(default_factory=dict)
     _fallback: dict[str, float] = field(default_factory=dict)
